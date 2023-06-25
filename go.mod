@@ -1,4 +1,4 @@
-module github.dev/vitorfhc/ftp
+module github.com/vitorfhc/ftp
 
 go 1.17
 
