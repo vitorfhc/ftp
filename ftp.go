@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"net/textproto"
+	"runtime/trace"
 	"strconv"
 	"strings"
 	"time"
@@ -349,18 +350,22 @@ func DialTimeout(addr string, timeout time.Duration) (*ServerConn, error) {
 // "anonymous"/"anonymous" is a common user/password scheme for FTP servers
 // that allows anonymous read-only accounts.
 func (c *ServerConn) Login(user, password string, feat bool) error {
+	_, task := trace.NewTask(context.Background(), "FTPLogin")
 	code, message, err := c.cmd(-1, "USER %s", user)
 	if err != nil {
 		return err
 	}
+	task.End()
 
 	switch code {
 	case StatusLoggedIn:
 	case StatusUserOK:
+		_, task := trace.NewTask(context.Background(), "FTPPassword")
 		_, _, err = c.cmd(StatusLoggedIn, "PASS %s", password)
 		if err != nil {
 			return err
 		}
+		task.End()
 	default:
 		return errors.New(message)
 	}
